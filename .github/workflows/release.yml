@@ -35,13 +35,14 @@ jobs:
       - name: Analyze
         run: flutter analyze --no-fatal-infos
 
-      - name: Build release APK
-        run: flutter build apk --release
+      - name: Build release APKs (split per CPU)
+        run: flutter build apk --release --split-per-abi --target-platform android-arm,android-arm64
 
-      - name: Rename APK with version
+      - name: Rename APKs with version
         run: |
           VERSION="${GITHUB_REF_NAME:-dev}"
-          cp build/app/outputs/flutter-apk/app-release.apk "Capture-${VERSION}.apk"
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "Capture-${VERSION}-arm64.apk"
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "Capture-${VERSION}-armv7.apk"
           ls -lh Capture-*.apk
 
       - name: Upload APK artifact
@@ -59,11 +60,18 @@ jobs:
             Offline OCR app — extract text from images and documents, fully on-device.
 
             ## Download
-            Grab `Capture-${{ github.ref_name }}.apk` below and install it (allow "install from unknown sources" if prompted).
+            Pick the APK for your phone (not sure? choose **arm64** — nearly all modern phones):
+
+            | File | Who it's for |
+            |------|--------------|
+            | `Capture-${{ github.ref_name }}-arm64.apk` | Modern phones (2017+) — **start here** |
+            | `Capture-${{ github.ref_name }}-armv7.apk` | Older / budget phones |
+
+            Install: download → open → allow "install from unknown sources" if prompted.
 
             ## Build
-            - Flutter ${{ '3.38.5' }}
-            - Flutter build apk --release
+            - Flutter 3.38.5
+            - `flutter build apk --release --split-per-abi`
             - Signed with debug keys (sideload install)
           files: Capture-*.apk
           fail_on_unmatched_files: true
